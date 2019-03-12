@@ -9,46 +9,39 @@ sessions = []
 addresses = []
 nicknames = {}
 def resend(ses, addr):
-    nicknames[str(addr)] = "Not set"
+    num = len(nicknames)
+    nicknames[num] = "Not set"
     while True:
-        try:
             ses.settimeout(1000000)
             q = ses.recv(4096)
             print(q.decode())
             if q.decode() == "nickname":
-                nicknames[str(addr)] = ses.recv(4096).decode()
+                nicknames[num] = ses.recv(4096).decode()
             else:
                 for i,v in enumerate(sessions):
-                    if nicknames[str(addr)] == "Not set":
-                        v.send((str(addr[i]) + " Sent a message!: " + q.decode()).encode())
-                    else:
-                        v.send((nicknames[str(addr)] + " Sent a message!: " + q.decode()).encode())
+                    try:
+                        if nicknames[num] == "Not set":
+                            v.send((nicknames[num] + " Sent a message!: " + q.decode()).encode())
+                        else:
+                            v.send((nicknames[num] + " Sent a message!: " + q.decode()).encode())
+                    except Exception as e:
+                        print(str(e))
 
-        except Exception as e:
-            print(str(e))
-            break
+LHOST = "83.160.125.93"
+LPORT = 80
 
-
-
-def one():
-    global s
-    print("started")
-    LHOST = '127.0.0.1'
-    LPORT = 80
-    s.bind((LHOST, LPORT))
-    s.listen(1)
-    while True:
-        try:
-            print("yes")
-            ses, addr = s.accept()
-            sessions.append(ses)
-            addresses.append(addr)
-            newthread = threading.Thread(target = resend(ses,addr))
-            newthread.setDaemon(True)
-            newthread.start()
-        except Exception as e: 
-            print(str(e))
-
-thread = threading.Thread(target = one())
-thread.setDaemon(True)
-thread.start()
+while True:
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((LHOST, LPORT))
+        print("yes")
+        s.listen(1)
+        ses, addr = s.accept()
+        sessions.append(ses)
+        addresses.append(addr)
+        newthread = threading.Thread(target = resend, args=(ses, addr))
+        newthread.setDaemon(True)
+        newthread.start()
+    except Exception as e: 
+        print(str(e))

